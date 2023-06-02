@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : app_freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : app_freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -49,32 +49,20 @@
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
+const osThreadAttr_t defaultTask_attributes = { .name = "defaultTask",
+    .priority = (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
 /* Definitions for LD2_Task */
 osThreadId_t LD2_TaskHandle;
-const osThreadAttr_t LD2_Task_attributes = {
-  .name = "LD2_Task",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
+const osThreadAttr_t LD2_Task_attributes = { .name = "LD2_Task", .priority =
+    (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
 /* Definitions for LEDYellow_Task */
 osThreadId_t LEDYellow_TaskHandle;
-const osThreadAttr_t LEDYellow_Task_attributes = {
-  .name = "LEDYellow_Task",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
+const osThreadAttr_t LEDYellow_Task_attributes = { .name = "LEDYellow_Task",
+    .priority = (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
 /* Definitions for TaskMemory */
 osThreadId_t TaskMemoryHandle;
-const osThreadAttr_t TaskMemory_attributes = {
-  .name = "TaskMemory",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
+const osThreadAttr_t TaskMemory_attributes = { .name = "TaskMemory", .priority =
+    (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -94,22 +82,20 @@ unsigned long getRunTimeCounterValue(void);
 
 /* USER CODE BEGIN 1 */
 /* Functions needed when configGENERATE_RUN_TIME_STATS is on */
-__weak void configureTimerForRunTimeStats(void)
-{
+__weak void configureTimerForRunTimeStats(void) {
 
 }
 
-__weak unsigned long getRunTimeCounterValue(void)
-{
-return 0;
+__weak unsigned long getRunTimeCounterValue(void) {
+  return 0;
 }
 /* USER CODE END 1 */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
@@ -133,13 +119,15 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL,
+      &defaultTask_attributes);
 
   /* creation of LD2_Task */
   LD2_TaskHandle = osThreadNew(LD2TaskFunc, NULL, &LD2_Task_attributes);
 
   /* creation of LEDYellow_Task */
-  LEDYellow_TaskHandle = osThreadNew(YellowLED_Func, NULL, &LEDYellow_Task_attributes);
+  LEDYellow_TaskHandle = osThreadNew(YellowLED_Func, NULL,
+      &LEDYellow_Task_attributes);
 
   /* creation of TaskMemory */
   TaskMemoryHandle = osThreadNew(TaskMemory_Func, NULL, &TaskMemory_attributes);
@@ -156,72 +144,66 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
+void StartDefaultTask(void *argument) {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
+  for (;;) {
+    vTaskDelay(1);
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Header_LD2TaskFunc */
 /**
-* @brief Function implementing the LD2_Task thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the LD2_Task thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_LD2TaskFunc */
-void LD2TaskFunc(void *argument)
-{
+void LD2TaskFunc(void *argument) {
   /* USER CODE BEGIN LD2TaskFunc */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
+  for (;;) {
+    vTaskDelay(150);
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   }
   /* USER CODE END LD2TaskFunc */
 }
 
 /* USER CODE BEGIN Header_YellowLED_Func */
 /**
-* @brief Function implementing the LEDYellow_Task thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the LEDYellow_Task thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_YellowLED_Func */
-void YellowLED_Func(void *argument)
-{
+void YellowLED_Func(void *argument) {
   /* USER CODE BEGIN YellowLED_Func */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
+  for (;;) {
+    HAL_GPIO_TogglePin(YELLOW_GPIO_PORT, YELLOW_PIN);
+    vTaskDelay(150);
   }
   /* USER CODE END YellowLED_Func */
 }
 
 /* USER CODE BEGIN Header_TaskMemory_Func */
 /**
-* @brief Function implementing the TaskMemory thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the TaskMemory thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_TaskMemory_Func */
-void TaskMemory_Func(void *argument)
-{
+void TaskMemory_Func(void *argument) {
   /* USER CODE BEGIN TaskMemory_Func */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
+  for (;;) {
+    vTaskDelay(1);
   }
   /* USER CODE END TaskMemory_Func */
 }

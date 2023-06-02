@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -71,7 +71,11 @@ void Error_Handler(void);
 #define T_SWO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+#define USER_BUTTON_PIN                       GPIO_PIN_13
+#define USER_BUTTON_GPIO_PORT                 GPIOC
+#define YELLOW_PIN                              GPIO_PIN_5
+#define YELLOW_GPIO_PORT                        GPIOB
+/* USER CODE END PD */
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
