@@ -1,0 +1,51 @@
+<!DOCTYPE CrossStudio_Session_File>
+<session>
+ <Bookmarks/>
+ <Breakpoints groups="Breakpoints" active_group="Breakpoints"/>
+ <ExecutionProfileWindow/>
+ <FrameBuffer/>
+ <Memory1/>
+ <Memory2/>
+ <Memory3/>
+ <Memory4/>
+ <Project>
+  <ProjectSessionItem path="Rtos_Lesson3"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;Core"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;Core;Src"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;Middlewares"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;SEGGER"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;SEGGER;FreeRTOSV10.4"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;SEGGER;FreeRTOSV10.4;Config"/>
+  <ProjectSessionItem path="Rtos_Lesson3;Rtos_Lesson3;SEGGER;FreeRTOSV10.4;Config;Cortex-M"/>
+ </Project>
+ <Register1/>
+ <Register2/>
+ <Register3/>
+ <Register4/>
+ <Threads>
+  <ThreadsWindow showLists=""/>
+ </Threads>
+ <TraceWindow>
+  <Trace enabled="Yes"/>
+ </TraceWindow>
+ <Watch1>
+  <Watches active="1" update="Never"/>
+ </Watch1>
+ <Watch2>
+  <Watches active="0" update="Never"/>
+ </Watch2>
+ <Watch3>
+  <Watches active="0" update="Never"/>
+ </Watch3>
+ <Watch4>
+  <Watches active="0" update="Never"/>
+ </Watch4>
+ <Files>
+  <SessionOpenFile windowGroup="DockEditLeft" x="19" y="25" useTextEdit="1" path="Core/Src/sysmem.c" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="8" y="31" useTextEdit="1" path="Core/Src/main.c" left="0" selected="1" top="27" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="184" useTextEdit="1" path="Core/Src/app_freertos.c" left="0" top="174" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="9" y="54" useTextEdit="1" path="SEGGER/FreeRTOSV10.4/Config/Cortex-M/SEGGER_SYSVIEW_Config_FreeRTOS.c" left="0" top="11" codecName="Default"/>
+ </Files>
+ <EMStudioWindow activeProject="Rtos_Lesson3" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Release Internal" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="" debugSearchPath="" autoConnectCapabilities="3199"/>
+</session>

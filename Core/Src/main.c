@@ -19,23 +19,33 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "tim.h"
-#include "usart.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SEGGER_RTT.h"
 #include "SEGGER_SYSVIEW.h"
+#include <stdint.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef uint32_t TaskProfiler;
 
+//struct Period_t {
+//  uint32_t LD2_Period;
+//  uint32_t YELLOW_Period;
+//
+//} Led = { 100, 300
+//
+//};
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define SOFTWARE_DEBUG  1
 
 /* USER CODE END PD */
 
@@ -45,17 +55,62 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim4;
 
+UART_HandleTypeDef huart3;
+
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = { .name = "defaultTask",
+    .priority = (osPriority_t) osPriorityLow, .stack_size = 128 * 4 };
+/* Definitions for _vRecieverTask */
+osThreadId_t _vRecieverTaskHandle;
+const osThreadAttr_t _vRecieverTask_attributes = { .name = "_vRecieverTask",
+    .priority = (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
+/* Definitions for _KeyboardTask */
+osThreadId_t _KeyboardTaskHandle;
+const osThreadAttr_t _KeyboardTask_attributes = { .name = "_KeyboardTask",
+    .priority = (osPriority_t) osPriorityNormal, .stack_size = 128 * 4 };
+/* Definitions for myQueue01 */
+osMessageQueueId_t myQueue01Handle;
+const osMessageQueueAttr_t myQueue01_attributes = { .name = "myQueue01" };
 /* USER CODE BEGIN PV */
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 uint32_t LD2_Period = 100;
 uint32_t YELLOW_Period = 300;
+osStatus_t status;
+uint32_t send_value = 42;
+uint32_t receive_value;
+
+char char_buffer[40] = { '0' };
+
+uint32_t MemProfiler = 0;
+TaskProfiler Task_LD2_Profiler, YELLOW_Profiler, Default_Profiler, MemProfiler;
+
+volatile uint32_t freemem;
+volatile uint32_t minfreemem;
+uint8_t NumberOfTasks;
+
+char pcWriteBuffer[512];
+uint32_t key_status = 0x0;
+uint32_t LedStatus = 0x1;
+
+//Led.LD2_Period =100;
+//Led.YELLOW_Period =300;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
-/* USER CODE BEGIN PFP */
+static void MX_GPIO_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_TIM4_Init(void);
+void StartDefaultTask(void *argument);
+void vRecieverTask_Func(void *argument);
+void KeyboardTask_Func(void *argument);
 
+/* USER CODE BEGIN PFP */
+void vPrintStringAndNumber(uint32_t value);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -64,11 +119,10 @@ void MX_FREERTOS_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -98,8 +152,49 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in freertos.c) */
-  MX_FREERTOS_Init();
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of myQueue01 */
+  myQueue01Handle = osMessageQueueNew(10, sizeof(uint16_t),
+      &myQueue01_attributes);
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL,
+      &defaultTask_attributes);
+
+  /* creation of _vRecieverTask */
+  _vRecieverTaskHandle = osThreadNew(vRecieverTask_Func, NULL,
+      &_vRecieverTask_attributes);
+
+  /* creation of _KeyboardTask */
+  _KeyboardTaskHandle = osThreadNew(KeyboardTask_Func, NULL,
+      &_KeyboardTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
   osKernelStart();
@@ -107,6 +202,10 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+//      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+//    HAL_Delay(500);
+//    vTaskDelay(150);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -115,21 +214,20 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void) {
+  RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -140,40 +238,260 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+      | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
     Error_Handler();
   }
 }
 
-/* USER CODE BEGIN 4 */
+/**
+ * @brief TIM4 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM4_Init(void) {
 
-/* USER CODE END 4 */
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+  TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 6553;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 0;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK) {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK) {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK) {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
 
 /**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM17 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
+ * @brief USART3 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_USART3_UART_Init(void) {
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK) {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_8)
+      != HAL_OK) {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_8)
+      != HAL_OK) {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart3) != HAL_OK) {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_GPIO_Init(void) {
+  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : BUTTON_Pin */
+  GPIO_InitStruct.Pin = BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LPUART1_TX_Pin LPUART1_RX_Pin */
+  GPIO_InitStruct.Pin = LPUART1_TX_Pin | LPUART1_RX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF12_LPUART1;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+void vPrintStringAndNumber(uint32_t value) {
+  snprintf(char_buffer, sizeof(char_buffer), "\nValue: %ld\n", value);
+  HAL_UART_Transmit(&huart3, (uint8_t*) char_buffer, strlen(char_buffer),
+  HAL_MAX_DELAY);
+}
+/* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument) {
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for (;;) {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_vRecieverTask_Func */
+/**
+ * @brief Function implementing the _vRecieverTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_vRecieverTask_Func */
+void vRecieverTask_Func(void *argument) {
+  /* USER CODE BEGIN vRecieverTask_Func */
+  /* Infinite loop */
+  for (;;) {
+    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+    vTaskDelay(YELLOW_Period);
+    vPrintStringAndNumber(YELLOW_Period);
+    osStatus_t status = osMessageQueueGet(myQueue01Handle, &YELLOW_Period,
+    NULL, 100);
+    if (status == osOK) {
+      HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
+      vTaskDelay(YELLOW_Period);
+      vPrintStringAndNumber(YELLOW_Period);
+    } else {
+      HAL_UART_Transmit(&huart3, (uint8_t*) "error\n\r", 5, 20);
+    }
+    osThreadYield();
+  }
+  /* USER CODE END vRecieverTask_Func */
+}
+
+/* USER CODE BEGIN Header_KeyboardTask_Func */
+/**
+ * @brief Function implementing the _KeyboardTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_KeyboardTask_Func */
+void KeyboardTask_Func(void *argument) {
+  /* USER CODE BEGIN KeyboardTask_Func */
+  /* Infinite loop */
+  for (;;) {
+    key_status = (key_status << 1)
+        + HAL_GPIO_ReadPin(BUTTON_GPIO_Port, BUTTON_Pin);
+    if ((key_status == 0xFFFF) & (LedStatus == 1)) {
+      LedStatus = 2;
+      key_status = 0x0;
+      YELLOW_Period = 1200;
+      LD2_Period = 30;
+      osMessageQueueGet(myQueue01Handle, &YELLOW_Period,
+      NULL, 100);
+      osThreadYield();
+    }
+
+    if ((key_status == 0xFFFF) & (LedStatus == 2)) {
+      LedStatus = 1;
+      key_status = 0x0;
+      YELLOW_Period = 30;
+      LD2_Period = 1000;
+      osMessageQueueGet(myQueue01Handle, &YELLOW_Period,
+      NULL, 100);
+      osThreadYield();
+    }
+    /* USER CODE END KeyboardTask_Func */
+  }
+}
+/**
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM17 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
@@ -186,11 +504,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();

@@ -1,0 +1,138 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="Rtos_Lesson3" target="8" version="2">
+  <configuration
+    Name="Debug"
+    c_preprocessor_definitions="DEBUG"
+    gcc_debugging_level="Level 3"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="None"
+    hidden="Yes" />
+  <configuration
+    Name="Debug Internal"
+    inherited_configurations="Internal;Debug" />
+  <configuration Name="Internal" Platform="ARM" hidden="Yes" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="Level 2"
+    gcc_omit_frame_pointer="Yes"
+    gcc_optimization_level="Level 2 balanced"
+    hidden="Yes" />
+  <configuration
+    Name="Release Internal"
+    inherited_configurations="Internal;Release" />
+  <project Name="Rtos_Lesson3">
+    <configuration
+      Name="Common"
+      arm_architecture="v7EM"
+      arm_compiler_variant="SEGGER"
+      arm_core_type="Cortex-M4"
+      arm_endian="Little"
+      arm_fpu_type="FPv4-SP-D16"
+      arm_linker_variant="SEGGER"
+      arm_target_device_name="STM32G474RE"
+      arm_target_interface_type="SWD"
+      debug_start_from_entry_point_symbol="No"
+      debug_target_connection="J-Link"
+      link_linker_script_file="$(StudioDir)/samples/SEGGER_Flash.icf"
+      linker_section_placements_segments="FLASH1 RX 0x08000000 0x00040000;FLASH2 RX 0x08040000 0x00040000;FLASH3 RX 0x1fff7800 0x00000030;FLASH4 RX 0x1ffff800 0x00000030;RAM1 RWX 0x20000000 0x00020000;"
+      project_directory=""
+      project_type="Executable" />
+    <configuration
+      Name="Debug"
+      arm_architecture="v7EM"
+      arm_core_type="Cortex-M4"
+      arm_endian="Little"
+      arm_fp_abi="Hard"
+      arm_fpu_type="FPv4-SP-D16"
+      arm_target_device_name="STM32G474RE"
+      c_preprocessor_definitions="DEBUG;USE_HAL_DRIVER;STM32G474xx"
+      c_user_include_directories="$(ProjectDir)/SEGGER;$(ProjectDir)/Config;$(ProjectDir)/SEGGER/FreeRTOSV10.4;$(ProjectDir)/Core/Inc;$(ProjectDir)/SEGGER;$(ProjectDir)/Drivers/STM32G4xx_HAL_Driver/Inc;$(ProjectDir)/Drivers/STM32G4xx_HAL_Driver/Inc/Legacy;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/include;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F;$(ProjectDir)/Drivers/CMSIS/Device/ST/STM32G4xx/Include;$(ProjectDir)/Drivers/CMSIS/Include"
+      gcc_debugging_level="Level 3"
+      gcc_optimization_level="Optimize For Size"
+      linker_additional_files=""
+      linker_section_placements_segments="FLASH1 RX 0x08000000 0x00040000;FLASH2 RX 0x08040000 0x00040000;FLASH3 RX 0x1fff7800 0x00000030;FLASH4 RX 0x1ffff800 0x00000030;RAM1 RWX 0x20000000 0x00020000;" />
+    <configuration
+      Name="Debug Internal"
+      build_intermediate_directory="$(Configuration)"
+      build_output_directory="$(Configuration)" />
+    <configuration
+      LIBRARY_IO_TYPE="SEMIHOST (host-formatted)"
+      Name="Internal" />
+    <configuration
+      Name="Release"
+      arm_architecture="v7EM"
+      arm_core_type="Cortex-M4"
+      arm_endian="Little"
+      arm_fp_abi="Hard"
+      arm_fpu_type="FPv4-SP-D16"
+      arm_target_device_name="STM32G474RE"
+      c_preprocessor_definitions="USE_HAL_DRIVER;STM32G474xx"
+      c_user_include_directories="$(ProjectDir)/Core/Inc;$(ProjectDir)/Drivers/STM32G4xx_HAL_Driver/Inc;$(ProjectDir)/Drivers/STM32G4xx_HAL_Driver/Inc/Legacy;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/include;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;$(ProjectDir)/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F;$(ProjectDir)/Drivers/CMSIS/Device/ST/STM32G4xx/Include;$(ProjectDir)/Drivers/CMSIS/Include"
+      gcc_debugging_level="None"
+      gcc_optimization_level="Optimize For Size"
+      linker_additional_files=""
+      linker_section_placements_segments="FLASH1 RX 0x08000000 0x00040000;FLASH2 RX 0x08040000 0x00040000;FLASH3 RX 0x1fff7800 0x00000030;FLASH4 RX 0x1ffff800 0x00000030;RAM1 RWX 0x20000000 0x00020000;" />
+    <configuration
+      Name="Release Internal"
+      SEGGER2Proj="Yes"
+      build_intermediate_directory="$(Configuration)"
+      build_output_directory="$(Configuration)" />
+    <folder
+      Name="Core"
+      exclude="Core/;*_PP.s;*_PP.c"
+      filter="*.c;*.h;*.cpp;*.hpp;*.s;*.S"
+      path="Core"
+      recurse="Yes" />
+    <folder
+      Name="Debug/SEGGER/FreeRTOSV10.4/Config/Cortex-M"
+      exclude="Debug/SEGGER/FreeRTOSV10.4/Config/Cortex-M/;*_PP.s;*_PP.c"
+      filter="*.c;*.h;*.cpp;*.hpp;*.s;*.S"
+      path="Debug/SEGGER/FreeRTOSV10.4/Config/Cortex-M"
+      recurse="Yes" />
+    <folder
+      Name="Drivers"
+      exclude="Drivers/;*_PP.s;*_PP.c"
+      filter="*.c;*.h;*.cpp;*.hpp;*.s;*.S"
+      path="Drivers"
+      recurse="Yes" />
+    <folder Name="Internal Files">
+      <file file_name="$(StudioDir)/samples/Cortex_M_Startup.s" />
+      <file file_name="$(StudioDir)/samples/SEGGER_THUMB_Startup.s" />
+    </folder>
+    <folder
+      Name="Middlewares"
+      exclude="Middlewares/;*_PP.s;*_PP.c"
+      filter="*.c;*.h;*.cpp;*.hpp;*.s;*.S"
+      path="Middlewares"
+      recurse="Yes" />
+    <folder Name="SEGGER">
+      <folder Name="FreeRTOSV10.4">
+        <folder Name="Config">
+          <folder Name="Cortex-M">
+            <file file_name="SEGGER/FreeRTOSV10.4/Config/Cortex-M/SEGGER_SYSVIEW_Config_FreeRTOS.c" />
+          </folder>
+        </folder>
+        <folder Name="Patch" />
+        <file file_name="SEGGER/FreeRTOSV10.4/SEGGER_SYSVIEW_FreeRTOS.c" />
+        <file file_name="SEGGER/FreeRTOSV10.4/SEGGER_SYSVIEW_FreeRTOS.h" />
+      </folder>
+      <folder Name="Syscalls">
+        <file file_name="SEGGER/Syscalls/SEGGER_RTT_Syscalls_GCC.c" />
+        <file file_name="SEGGER/Syscalls/SEGGER_RTT_Syscalls_IAR.c" />
+        <file file_name="SEGGER/Syscalls/SEGGER_RTT_Syscalls_KEIL.c" />
+      </folder>
+      <file file_name="SEGGER/SEGGER.h" />
+      <file file_name="SEGGER/SEGGER_RTT.c" />
+      <file file_name="SEGGER/SEGGER_RTT.h" />
+      <file file_name="SEGGER/SEGGER_RTT_ASM_ARMv7M.S" />
+      <file file_name="SEGGER/SEGGER_RTT_Conf.h" />
+      <file file_name="SEGGER/SEGGER_RTT_printf.c" />
+      <file file_name="SEGGER/SEGGER_SYSVIEW.c" />
+      <file file_name="SEGGER/SEGGER_SYSVIEW.h" />
+      <file file_name="SEGGER/SEGGER_SYSVIEW_ConfDefaults.h" />
+      <file file_name="SEGGER/SEGGER_SYSVIEW_Int.h" />
+    </folder>
+    <folder Name="Source Files" />
+  </project>
+</solution>
