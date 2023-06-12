@@ -440,9 +440,10 @@ void vRecieverTask_Func(void *argument) {
       HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5);
       vTaskDelay(YELLOW_Period);
       vPrintStringAndNumber(YELLOW_Period);
-    } else {
-      HAL_UART_Transmit(&huart3, (uint8_t*) "error\n\r", 5, 20);
     }
+//    else {
+//      HAL_UART_Transmit(&huart3, (uint8_t*) "error\n\r", 5, 20);
+//    }
     osThreadYield();
   }
   /* USER CODE END vRecieverTask_Func */
